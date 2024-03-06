@@ -5,6 +5,7 @@
 #define EXIT_THRESHOLE 2
 #define OPEN 0
 #define CLOSE 1
+#define MAX_CAR 3
 
 // objects
 Servo servo;
@@ -39,6 +40,7 @@ void setup()
   pinMode(photoR_entry, INPUT);
   pinMode(photoR_exit, INPUT);
 
+  // initialize servo
   servo.attach(servoPin);
   servo.write(0);
   delay(1000);
@@ -54,32 +56,34 @@ void loop()
 
 void mainProcess()
 {
-  if (gateState == CLOSE && analogRead(photoR_entry) < ENTRY_THRESHOLE && carNumber < 3)
+  // a car is trying to get in
+  if (gateState == CLOSE && analogRead(photoR_entry) < ENTRY_THRESHOLE && carNumber < MAX_CAR)
   {
     gateControl(OPEN);
     gateState = OPEN;
-    while (gateState == OPEN)
+    while (gateState == OPEN) // wait for the car to pass
     {
       if (analogRead(photoR_exit) < EXIT_THRESHOLE)
       {
         gateControl(CLOSE);
-        gateState = !gateState;
+        gateState = CLOSE;
         carNumber += 1;
         setColor();
       }
     }
   }
 
+  // a car is trying to get out
   if (gateState == CLOSE && analogRead(photoR_exit) < EXIT_THRESHOLE && carNumber > 0)
   {
     gateControl(OPEN);
     gateState = OPEN;
-    while (gateState == OPEN)
+    while (gateState == OPEN) // wait for the car to pass
     {
       if (analogRead(photoR_entry) < ENTRY_THRESHOLE)
       {
         gateControl(CLOSE);
-        gateState = !gateState;
+        gateState = CLOSE;
         carNumber -= 1;
         setColor();
       }
@@ -92,9 +96,9 @@ void gateControl(bool command)
   if (command == OPEN)
   {
     servo.attach(servoPin);
-    for (int pos = 0; pos < 90; pos += 1)
+    for (servoPos = 0; servoPos < 90; servoPos += 1)
     {
-      servo.write(pos);
+      servo.write(servoPos);
       delay(15);
     }
     servo.detach();
@@ -102,9 +106,9 @@ void gateControl(bool command)
   else
   {
     servo.attach(servoPin);
-    for (int pos = 90; pos > 0; pos -= 1)
+    for (servoPos = 90; servoPos > 0; servoPos -= 1)
     {
-      servo.write(pos);
+      servo.write(servoPos);
       delay(15);
     }
     servo.detach();
