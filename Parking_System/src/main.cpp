@@ -1,10 +1,10 @@
-#include <Arduino.h>
+#include <Arduino.h> // only for PlatformIO project
 #include <Servo.h>
 
-#define ENTRY_THRESHOLE 36
-#define EXIT_THRESHOLE 2
-#define OPEN 0
-#define CLOSE 1
+#define ENTRY_THRESHOLE 36 // depends on the photoresistor
+#define EXIT_THRESHOLE 2   // depends on the photoresistor
+#define OPEN 0             // for gateControl()
+#define CLOSE 1            // for gateControl()
 #define MAX_CAR 3
 
 // objects
