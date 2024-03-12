@@ -11,10 +11,10 @@
 Servo servo;
 
 // pins
-byte ledR = 12;
-byte ledG = 11;
-byte ledB = 10;
-byte servoPin = 8;
+byte ledR_pin = 12;
+byte ledG_pin = 11;
+byte ledB_pin = 10;
+byte servo_pin = 8;
 byte photoR_entry = A0;
 byte photoR_exit = A1;
 
@@ -34,14 +34,14 @@ void setup()
 {
   Serial.begin(115200);
 
-  pinMode(ledR, OUTPUT);
-  pinMode(ledG, OUTPUT);
-  pinMode(ledB, OUTPUT);
+  pinMode(ledR_pin, OUTPUT);
+  pinMode(ledG_pin, OUTPUT);
+  pinMode(ledB_pin, OUTPUT);
   pinMode(photoR_entry, INPUT);
   pinMode(photoR_exit, INPUT);
 
   // initialize servo
-  servo.attach(servoPin);
+  servo.attach(servo_pin);
   servo.write(0);
   delay(1000);
   servo.detach();
@@ -95,7 +95,7 @@ void gateControl(bool command)
 {
   if (command == OPEN)
   {
-    servo.attach(servoPin);
+    servo.attach(servo_pin);
     for (servoPos = 0; servoPos < 90; servoPos += 1)
     {
       servo.write(servoPos);
@@ -105,7 +105,7 @@ void gateControl(bool command)
   }
   else
   {
-    servo.attach(servoPin);
+    servo.attach(servo_pin);
     for (servoPos = 90; servoPos > 0; servoPos -= 1)
     {
       servo.write(servoPos);
@@ -135,9 +135,9 @@ void setColor()
 
 void analogColor(byte r, byte g, byte b)
 {
-  analogWrite(ledR, r);
-  analogWrite(ledG, g);
-  analogWrite(ledB, b);
+  analogWrite(ledR_pin, r);
+  analogWrite(ledG_pin, g);
+  analogWrite(ledB_pin, b);
 }
 
 void logPhotoRState()
