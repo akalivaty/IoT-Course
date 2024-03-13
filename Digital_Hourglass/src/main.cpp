@@ -2,7 +2,7 @@
 
 #define LONG_PRESS_TIME 1000 // distinguish between short action and long action
 #define CLICK_INTERVAL 300   // threshold time to enable each led
-#define BUZZER_RING_TIMES 2
+#define BUZZER_BEEP_TIMES 2
 #define SHORT_ACTION 0
 #define LONG_ACTION 1
 
@@ -15,7 +15,7 @@ uint8_t led_pin = 2; // start from pin 2 to 7
 uint32_t currentTime = 0;
 uint32_t previousTime = 0;
 uint16_t buttonPressTime = 0;
-uint8_t buzzerRingCount = 0;
+uint8_t buzzerBeepCount = 0;
 bool actionMode = SHORT_ACTION;
 
 // function prototypes
@@ -60,7 +60,7 @@ void mainProcess()
         digitalWrite(led_pin, LOW);
         delay(500);
       }
-      for (buzzerRingCount = 0; buzzerRingCount < BUZZER_RING_TIMES; buzzerRingCount++)
+      for (buzzerBeepCount = 0; buzzerBeepCount < BUZZER_BEEP_TIMES; buzzerBeepCount++)
       {
         digitalWrite(buzzer_pin, HIGH);
         delay(500);
