@@ -1,0 +1,6 @@
+pillow
+PyAutoGUI
+pyinstaller
+pyserial
+# pip install git+https://github.com/pybluez/pybluez.git#egg=pybluez
+# check https://blog.csdn.net/ViatorSun/article/details/118699938 if pybluez occurs error: Microsoft Visual C++ 14.0 or greater is required. Get it with “Microsoft C++ Build Tools”: https://visualstudio.microsoft.com/visual-cpp-build-tools/

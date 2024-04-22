@@ -12,24 +12,26 @@ from PIL import Image
 from custom_window import Custom_Window
 
 
+# for joystick command mapping
 def keyEvent(event):
     if event & 1:
-        print("Received: 1, space")
-        pyautogui.press("space")  # Send a space key press event
+        print("Received: 1 :: space")
+        pyautogui.press("space")
     if (event >> 1) & 1:
-        print("Received: 2, right")
+        print("Received: 2 :: right")
         pyautogui.press("right")
     if (event >> 2) & 1:
-        print("Received: 4, left")
+        print("Received: 4 :: left")
         pyautogui.press("left")
     if (event >> 3) & 1:
-        print("Received: 8, down")
+        print("Received: 8 :: down")
         pyautogui.press("down")
     if (event >> 4) & 1:
-        print("Received: 16, up")
+        print("Received: 16 :: up")
         pyautogui.press("up")
 
 
+# for reading joystick commands from arduino
 def read_from_arduino(protName):
     arduino = serial.Serial(port=protName, baudrate=115200, timeout=0.1)
     while True:
@@ -39,35 +41,40 @@ def read_from_arduino(protName):
         time.sleep(0.1)
 
 
+# create indoor layout window
 def create_main_window(root):
     global socket
-    # Destroy the current window
-    root.destroy()
 
-    # laod the images
+    root.destroy()  # Destroy the BT device selecting window (first window)
+
+    # laod the indoor layout images
     images = ["img/top1.png", "img/bottom.png", "img/right1.png"]
     imgList = [Image.open(img) for img in images]
 
+    # call custom window class to create a new window (second window)
     mainWindow = Custom_Window(
         "Smart Home",
         imgList,
         socket=socket,
     )
+
+    #  assign blink state to the top grid
     mainWindow.gridDict["top"] = "blink"
     mainWindow.blink(grid="top", alpha=0.1, increment=0.02)
 
+    # bind key events to the window
     mainWindow._root.bind("<space>", mainWindow.on_space_press)
 
     for key in ["<Left>", "<Right>", "<Up>", "<Down>"]:
         mainWindow._root.bind(key, mainWindow.on_arrow_press)
 
-    mainWindow.run()
+    mainWindow.run()  # keep the window alive
 
 
 def on_device_click(root, addr):
     global socket
 
-    # connect to the arduino
+    # create bt socket and connect to the device
     socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
     socket.connect((addr, 1))
 
@@ -75,80 +82,81 @@ def on_device_click(root, addr):
 
 
 def discover_devices(root, progress, label):
-    # Discover Bluetooth devices
-    devices = bluetooth.discover_devices(lookup_names=True, duration=2)
+    # discover Bluetooth devices
+    devices = bluetooth.discover_devices(lookup_names=True, duration=8)
 
+    # destroy the elements about searching devices
     label.destroy()
-
-    # Stop the animation
     progress.stop()
     progress.destroy()
 
-    # Create a label to show the "Searching device" message
+    # create a label to show the found bt devices
     label = tk.Label(root, text="Found devices\n", bg="black", fg="white")
     label.place(relx=0.5, rely=0.45, anchor="center")
 
-    # Create a list to hold the buttons
+    # hold the index of the selected button
     buttons = []
-
-    # Create a variable to hold the index of the selected button
     selected_button_index = tk.IntVar(root)
     selected_button_index.set(0)
 
-    # Create a button for each device
+    # create a button for each device
     for idx, (addr, name) in enumerate(devices):
         button = tk.Button(
             root,
-            text=name if name != "" else addr,
+            text=name,
             padx=10,
             pady=10,
             command=lambda device=name: on_device_click(root, addr),
         )
         button.place(relx=0.5, rely=0.5 + idx * 0.1, anchor="center")
-
-        # Add the button to the list
         buttons.append(button)
 
-    # Update the selected button when the up arrow key is pressed
+    # update the selected button when the up arrow key is pressed
     def on_up_arrow_press(event):
         old_index = selected_button_index.get()
         selected_button_index.set((old_index - 1) % len(buttons))
-        buttons[old_index].config(bg="SystemButtonFace")  # Reset the old button's color
-        buttons[selected_button_index.get()].config(
-            bg="#e0d312"
-        )  # Change the new button's color
+
+        # reset the color of old button
+        buttons[old_index].config(bg="SystemButtonFace")
+
+        # change the color of selected button
+        buttons[selected_button_index.get()].config(bg="#e0d312")
+
         buttons[selected_button_index.get()].focus()
 
-    # Update the selected button when the down arrow key is pressed
+    # update the selected button when the down arrow key is pressed
     def on_down_arrow_press(event):
         old_index = selected_button_index.get()
         selected_button_index.set((old_index + 1) % len(buttons))
-        buttons[old_index].config(bg="SystemButtonFace")  # Reset the old button's color
-        buttons[selected_button_index.get()].config(
-            bg="#e0d312"
-        )  # Change the new button's color
+
+        # reset the color of old button
+        buttons[old_index].config(bg="SystemButtonFace")
+
+        # change the color of selected button
+        buttons[selected_button_index.get()].config(bg="#e0d312")
+
         buttons[selected_button_index.get()].focus()
 
-    # Bind the keys to the functions
+    # bind the keys to the functions
     root.bind("<Up>", on_up_arrow_press)
     root.bind("<Down>", on_down_arrow_press)
 
 
 def on_port_click(root, protName, label, frame):
-    print(f"on_port_click: {protName}")
-
+    # create a thread to read joystick commands from Arduino
     th = threading.Thread(target=read_from_arduino, args=(protName,))
     th.daemon = True
     th.start()
 
+    # destroy the elements about COM prot selecting
     label.destroy()
     frame.destroy()
 
-    # Create a label to show the "Searching device" message
+    # create a label to show the "Searching device" message
     label = tk.Label(root, text="Searching device", bg="black", fg="white")
     label.place(relx=0.5, rely=0.45, anchor="center")
 
-    # Create a label to show the animation
+    # create a label to show the progress animation
     progress = ttk.Progressbar(
         root,
         mode="indeterminate",
@@ -157,34 +165,32 @@ def on_port_click(root, protName, label, frame):
         style="custom.Horizontal.TProgressbar",
     )
     progress.place(relx=0.5, rely=0.5, anchor="center")
-
-    # Start the animation
     progress.start(2)
 
-    # Discover Bluetooth devices in a separate thread
+    # create a thread to discover bt devices
     th = threading.Thread(target=discover_devices, args=(root, progress, label))
     th.daemon = True
     th.start()
 
 
 def main():
-    # Create a Tkinter window
+    # create a Tkinter window
     root = tk.Tk()
     root.minsize(800, 600)
     root.configure(bg="black")
 
-    # Create a label to show the "Searching device" message
+    # create a label to show the "Select ports" message
     label = tk.Label(root, text="Select ports\n", bg="black", fg="white")
     label.place(relx=0.5, rely=0.3, anchor="center")
 
-    # Create a frame to hold the buttons
+    # create a frame to hold all COM port buttons
     frame = tk.Frame(root, bg="black")
-    frame.place(relx=0.5, rely=0.5, anchor="center")
+    frame.place(relx=0.5, rely=0.4, anchor="center")
 
-    # Discover COM ports
+    # discover COM ports
     ports = serial.tools.list_ports.comports()
 
-    # Create a button for each port
+    # create a button for each port
     for port in ports:
         button = tk.Button(
             frame,
@@ -195,8 +201,7 @@ def main():
         )
         button.pack(padx=5, pady=5)
 
-    # Start the Tkinter event loop
-    root.mainloop()
+    root.mainloop()  # keep this window alive
 
 
 if __name__ == "__main__":

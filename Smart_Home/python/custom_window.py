@@ -11,27 +11,22 @@ class Custom_Window:
         self.socket = socket
 
         self._root = tk.Tk()
-
-        # Set window title
         self._root.title(title)
-
-        # Set minimum window size
         self._root.minsize(800, 600)
-
-        # Set window background color to black
         self._root.configure(bg="black")
 
+        # raise this window in the stacking order
         self._root.lift()
         self._root.focus_force()
 
-        # Create a frame for the left part of the window
+        # create a frame for the left part of the window
         self._leftFrame = tk.Frame(self._root, bg="black")
         self._leftFrame.grid(row=0, column=0, rowspan=2, sticky="nsew")
 
-        # Load the images
+        # load the indoor layout images
         self._topImg, self._bottomImg, self._rightImg = imgList
 
-        # Create semi-transparent masks
+        # create semi-transparent masks for the indoor layout images
         self._topImgMask = ImageTk.PhotoImage(
             Image.blend(
                 self._topImg.convert("RGB"),
@@ -39,7 +34,7 @@ class Custom_Window:
                 alpha=0.8,
             )
         )
-        self.bottomImgMask = ImageTk.PhotoImage(
+        self._bottomImgMask = ImageTk.PhotoImage(
             Image.blend(
                 self._bottomImg.convert("RGB"),
                 Image.new("RGB", self._bottomImg.size, (0, 0, 0)),
@@ -54,44 +49,40 @@ class Custom_Window:
             )
         )
 
-        # Create two labels in the left frame with images as background
+        # create two labels in the left frame with images as background
         self._topLabel = tk.Label(self._leftFrame, image=self._topImgMask, bg="black")
         self._topLabel.grid(row=0, column=0, sticky="nsew")
 
         self._bottomLabel = tk.Label(
-            self._leftFrame, image=self.bottomImgMask, bg="black"
+            self._leftFrame, image=self._bottomImgMask, bg="black"
         )
         self._bottomLabel.grid(row=1, column=0, sticky="nsew")
 
-        # Create a label for the right part of the window with image as background
+        # create a label for the right frame of the window with image as background
         self._rightLabel = tk.Label(self._root, image=self._rightImgMask, bg="black")
         self._rightLabel.grid(row=0, column=1, rowspan=2, sticky="nsew")
 
-        # Keep a reference to the PhotoImage objects
+        # keep a reference to the PhotoImage objects
         self._root._topImgMask = self._topImgMask
-        self._root.bottomImgMask = self.bottomImgMask
+        self._root._bottomImgMask = self._bottomImgMask
         self._root._rightImgMask = self._rightImgMask
 
     def run(self):
-        # Additional setup can go here
-        self._root.mainloop()
+        self._root.mainloop()  # keep the window alive
 
-    # Function to create a fade in and fade out effect
     def blink(self, grid, alpha, increment):
         if self.gridDict[grid] == "blink":
             self._targetGrid = grid
 
-            # Create a dictionary to map the grid names to the corresponding labels and images
+            # get the target grid element
             grids = {
                 "top": (self._topLabel, self._topImg),
                 "bottom": (self._bottomLabel, self._bottomImg),
                 "right": (self._rightLabel, self._rightImg),
             }
-
-            # Get the label and image for the given grid
             gridLabel, gridImg = grids[grid]
 
-            # Create the image mask
+            # create a new image mask
             gridImgMask = ImageTk.PhotoImage(
                 Image.blend(
                     gridImg.convert("RGB"),
@@ -102,6 +93,8 @@ class Custom_Window:
 
             gridLabel.configure(image=gridImgMask)
             gridLabel.image = gridImgMask
+
+            # call the blink effect recursively
             if alpha >= 0.8:
                 increment = -0.02
             elif alpha <= 0.1:
@@ -111,17 +104,15 @@ class Custom_Window:
     def always_on(self, grid):
         self._targetGrid = grid
 
-        # Create a dictionary to map the grid names to the corresponding labels and images
+        # get the target grid element
         grids = {
             "top": (self._topLabel, self._topImg),
             "bottom": (self._bottomLabel, self._bottomImg),
             "right": (self._rightLabel, self._rightImg),
         }
-
-        # Get the label and image for the given grid
         gridLabel, gridImg = grids[grid]
 
-        # Create the image mask
+        # create a new image mask
         gridImgMask = ImageTk.PhotoImage(
             Image.blend(
                 gridImg.convert("RGB"),
@@ -134,17 +125,15 @@ class Custom_Window:
         gridLabel.image = gridImgMask
 
     def always_off(self, grid):
-        # Create a dictionary to map the grid names to the corresponding labels and images
+        # get the target grid element
         grids = {
             "top": (self._topLabel, self._topImg),
             "bottom": (self._bottomLabel, self._bottomImg),
             "right": (self._rightLabel, self._rightImg),
         }
-
-        # Get the label and image for the given grid
         gridLabel, gridImg = grids[grid]
-        print(f"grid: {grid}")
-        # Create the image mask
+
+        # create the image mask
         gridImgMask = ImageTk.PhotoImage(
             Image.blend(
                 gridImg.convert("RGB"),
@@ -160,20 +149,19 @@ class Custom_Window:
         if counter > 0:
             if alpha <= 0:
                 counter -= 1
-            # Create a dictionary to map the grid names to the corresponding labels and images
+
+            # get the target grid element
             grids = {
                 "top": (self._topLabel, self._topImg),
                 "bottom": (self._bottomLabel, self._bottomImg),
                 "right": (self._rightLabel, self._rightImg),
             }
-
-            # Get the label and image for the given grid
             gridLabel, gridImg = grids[self._targetGrid]
 
-            # Set the color based on the state
+            # set the color based on the `state`
             color = (52, 209, 107) if state == "on" else (245, 66, 96)
 
-            # Create the image mask
+            # create a new image mask
             gridImgMask = ImageTk.PhotoImage(
                 Image.blend(
                     gridImg.convert("RGB"),
@@ -181,9 +169,10 @@ class Custom_Window:
                     alpha,
                 )
             )
-
             gridLabel.configure(image=gridImgMask)
             gridLabel.image = gridImgMask
+
+            # call the selectd effect recursively
             if alpha >= 0.5:
                 increment = -0.02
             elif alpha <= 0:
@@ -193,19 +182,25 @@ class Custom_Window:
             )
 
     def on_space_press(self, event):
+        # change target grid from "always_on" to "blink"
         if self.gridDict[self._targetGrid] == "on":
             self.gridDict[self._targetGrid] = "blink"
             self.blink(grid=self._targetGrid, alpha=0.1, increment=0.02)
 
+        # change target grid from "blink" to "always_on"
         elif self.gridDict[self._targetGrid] == "blink":
             self.gridDict[self._targetGrid] = "on"
             self.always_on(self._targetGrid)
 
     def on_arrow_press(self, event):
+        # when no grid is "always_on"
         if "on" not in self.gridDict.values():
             if event.keysym == "Left":
+                # set the current grid to "always_off"
                 self.gridDict[self._targetGrid] = "off"
                 self.always_off(self._targetGrid)
+
+                # loop selection of the grids
                 if self._gridList.index(self._targetGrid) == 0:
                     self._targetGrid = self._gridList[-1]
                 else:
@@ -213,14 +208,16 @@ class Custom_Window:
                         self._gridList.index(self._targetGrid) - 1
                     ]
 
+                # set the new grid to "blink"
                 self.gridDict[self._targetGrid] = "blink"
                 self.blink(grid=self._targetGrid, alpha=0.1, increment=0.02)
 
-                print("Left arrow key pressed")
-
             elif event.keysym == "Right":
+                # set the current grid to "always_off"
                 self.gridDict[self._targetGrid] = "off"
                 self.always_off(self._targetGrid)
+
+                # loop selection of the grids
                 if self._gridList.index(self._targetGrid) == 2:
                     self._targetGrid = self._gridList[0]
                 else:
@@ -228,31 +225,37 @@ class Custom_Window:
                         self._gridList.index(self._targetGrid) + 1
                     ]
 
+                # set the new grid to "blink"
                 self.gridDict[self._targetGrid] = "blink"
                 self.blink(grid=self._targetGrid, alpha=0.1, increment=0.02)
 
-                print("Right arrow key pressed")
+        # when a grid is "always_on"
         else:
             if event.keysym == "Up":
                 if self._targetGrid == "top":
                     self.socket.send("13")
                     print("command: 13")
                     self.selectd_effect(0.1, 0.02, 1, "on")
+
                 elif self._targetGrid == "bottom":
                     pyautogui.press("volumeup")
                     self.selectd_effect(0.1, 0.02, 1, "on")
+
                 elif self._targetGrid == "right":
                     self.socket.send("23")
                     print("command: 23")
                     self.selectd_effect(0.1, 0.02, 1, "on")
+
             elif event.keysym == "Down":
                 if self._targetGrid == "top":
                     self.socket.send("17")
                     print("command: 17")
                     self.selectd_effect(0.1, 0.02, 1, "off")
+
                 elif self._targetGrid == "bottom":
                     pyautogui.press("volumedown")
                     self.selectd_effect(0.1, 0.02, 1, "off")
+
                 elif self._targetGrid == "right":
                     self.socket.send("29")
                     print("command: 29")

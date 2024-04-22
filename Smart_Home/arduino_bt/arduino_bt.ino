@@ -11,8 +11,8 @@ SoftwareSerial BTserial(2, 3);  // SoftwareSerial(RX, TX) on arduino board
 uint8_t led_pin = 7;
 uint8_t servo_pin = 8;
 
-const int bufferLength = 20;                 // 定义缓存大小为10个字节
-char serialBuffer[bufferLength] = { '\0' };  // 建立字符数组用于缓存
+const int bufferLength = 20;
+char serialBuffer[bufferLength] = { '\0' };
 byte servoPos = 0;
 bool gateState = false;
 
